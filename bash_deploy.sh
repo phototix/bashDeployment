@@ -24,13 +24,12 @@ SSH_KEYS=(
 for (( i=0; i<${#INSTANCES[@]}; i++ )); do
     INSTANCE="${INSTANCES[i]}"
     SSH_KEY="${SSH_KEYS[i]}"
+    REMOTE_USER="serveruser"
     
     echo "Copying files to $INSTANCE..."
     
-    # Use SFTP to copy the files to the instance
-    sftp -i "$SSH_KEY" "ec2-user@$INSTANCE" <<EOF
-        put -r "$SOURCE_DIR" "$DEST_DIR"
-        bye
+    # Use rsync to copy the updated files to the instance
+    rsync -avz --delete -e "ssh -i $SSH_KEY" --exclude=".DS_Store" --exclude=".git*" --exclude="node_modules" --exclude="*.log" $SOURCE_DIR/ $REMOTE_USER@$INSTANCE:$DEST_DIR
 EOF
     
     echo "Files copied to $INSTANCE"
